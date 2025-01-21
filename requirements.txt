@@ -2,4 +2,5 @@ streamlit_gsheets==1.41.0
 pandas==2.2.3
 streamlit==1.41.1
 altair==5.5.0
+Git
 https://github.com/streamlit/gsheets-connection
