@@ -1,4 +1,4 @@
-streamlit_gsheets
-pandas>2.0
-streamlit==1.24.1
-altair
+import streamlit as st
+from streamlit_gsheets import GSheetsConnection
+import pandas as pd
+import altair as alt
