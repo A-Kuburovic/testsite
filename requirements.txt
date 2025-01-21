@@ -1,4 +1,4 @@
 streamlit_gsheets==1.41.0
 pandas==2.2.3
-streamlit==1.40.2
+streamlit==1.41.1
 altair==5.5.0
