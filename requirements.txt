@@ -1,5 +1,5 @@
 streamlit>=1.0.0
 pandas>=1.1.0
 altair>=4.0.0
-gspread
-oauth2client
+streamlit_gsheets
+gsheets
