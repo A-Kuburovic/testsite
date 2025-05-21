@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <title>Flashcards med Kategorier</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      background: #EDF1F9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #37003C;
+    }
+
+    .category-container, .flashcard-container {
+      max-width: 800px;
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .category-button, .nav-button {
+      padding: 12px 20px;
+      background: #29E1FF;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .category-button:hover, .nav-button:hover {
+      background: #02F7C8;
+    }
+
+    .flashcard {
+      width: 400px;
+      height: 250px;
+      perspective: 1000px;
+      margin: 20px auto;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+      cursor: pointer;
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .front, .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    .back {
+      transform: rotateY(180deg);
+      background-color: #37003C;
+      color: white;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 id="chooseCategoryTitle">Vælg en kategori</h1>
+  <div class="category-container" id="categoryContainer">
+    <!-- 21 kategorier -->
+    <script>
+        const categoryNames = [
+          "1. Grundlæggende begreber",
+          "2. Lovens anvendelsesområde",
+          "3. Opgørelsesprincipper",
+          "4. Afståelse",
+          "5. Anskaffelses- og afståelsestidspunkter",
+          "6. Anskaffelses- og afståelsessummer",
+          "7. Beskatning af personer",
+          "8. Overgangsregler for personer",
+          "9. Beskatning af selskabers aktier",
+          "10. Næringsaktier",
+          "11. Beviser i investeringsforeninger mv.",
+          "12. Konvertible obligationer",
+          "13. Aktier med boligret ",
+          "14. Andelsbeviser ",
+          "15. Overordnet om overdragelse med succession",
+          "16. Aktieombytninger",
+          "17. Fusioner, spaltninger og tilførsel af aktiver ",
+          "18. Overdragelse med succession til familie, medarbejdere og erhvervsdrivende fonde",
+          "19. Til og fraflytning",
+          "20. Aktieløn",
+          "21. Udbytte"
+        ];
+      
+        categoryNames.forEach((name, index) => {
+          document.write(`<button class="category-button" onclick="selectCategory(${index + 1})">${name}</button>`);
+        });
+      </script>
+      
+  </div>
+
+<h2 id="categoryTitle" style="color:#37003C;"></h2>
+
+  <div id="flashcardSection" class="hidden">
+    <div class="flashcard" onclick="flipCard()">
+      <div class="card" id="card">
+        <div class="front" id="question"></div>
+        <div class="back" id="answer"></div>
+      </div>
+    </div>
+
+
+    <div class="controls">  
+      <button class="nav-button" onclick="prevCard()">Forrige</button>
+      <button class="nav-button" onclick="nextCard()">Næste</button>
+      <button class="nav-button" onclick="goBack()">Tilbage til forside</button>
+    </div>
+  </div>
+
+    <br>
+  <div id="counter" style="margin-top: 10px; font-weight: bold; color: #37003C;"></div>
+
+  <script>
+    const flashcardData = {
+      1: [
+            { question: "Hvad regulerer aktieavancebeskatningsloven?", answer: "Beskatningen af aktier og lignende værdipapirer for både personer og selskaber." },
+            { question: "Hvad har Forårspakke 2.0 betydet for aktieavancebeskatningsloven?", answer: "Den har tilføjet øget kompleksitet for selskaber." },
+            { question: "Hvad er en aktie?", answer: "En ret til en andel i selskabets aktiekapital - altså en del af ejerskabet i selskabet." },
+            { question: "Hvad er en aktieret?", answer: "Retten til at modtage en fondsaktie uden betaling, tildelt efter aktiebesiddelse." },
+            { question: "Hvad er en fondsaktie?", answer: "En aktie der tildeles uden vederlag og uden økonomisk fordel, fordelt ligeligt blandt" },
+            { question: "Hvornår udstedes fondsaktier typisk?", answer: "Ved rekonstruktion eller når selskabet har store reserver." },
+            { question: "Hvad er anskaffelsessummen for fondsaktier tildelt ud fra moderaktier?", answer: "0 kr." },
+            { question: "Hvad er en tegningsret?", answer: "Retten til at tegne nye aktier til en fastsat kurs ved kapitaludvidelse." },
+            { question: "Hvad er en warrant?", answer: "En ret til at tegne aktier på et fremtidigt tidspunkt og til en fastsat pris - betragtes som" },
+            { question: "Hvad er en konvertibel obligation?", answer: "Et gældsbrev, som kan ombyttes til aktier i selskabet." },
+            { question: "Hvad er forskellen på noterede og unoterede aktier for personer (fra 2024)?", answer: "Noterede: Aktier handlet på et reguleret marked eller en multilateral handelsfacilitet." },
+            { question: "Hvordan behandles omsættelige investeringsforeningsbeviser skattemæssigt?", answer: "De anses altid for at være noterede." },
+            { question: "Gælder samme sondring for selskaber?", answer: "Ja, samme definitioner gælder for selskaber." },
+            { question: "Hvornår er en aktionær hovedaktionær ifølge ABL § 4?", answer: "Ved ejerskab af 25 % af aktiekapitalen eller mere end 50 % af stemmeværdien - aktuelt eller" },
+            { question: "Hvem tæller med i den nærtstående personkreds ved vurdering af hovedaktionærstatus?", answer: "Ægtefælle, forældre og bedsteforældre, børn og børnebørn (+ deres ægtefæller), dødsboer" },
+            { question: "Medregnes konvertible obligationer ved vurdering af hovedaktionærstatus?", answer: "Nej, konvertible obligationer medregnes ikke." },
+            { question: "Hvad er afgørende for stemmeværdien ved vurdering af hovedaktionærstatus?", answer: "Hvem der har rådighed over stemmeretten - ikke nødvendigvis ejerskab." }
+        ],
+
+      2: [
+            { question: "Hvilken lov regulerer beskatning af gevinst og tab ved afståelse af aktier?", answer: "Aktieavancebeskatningsloven (ABL), jf. ABL § 1." },
+            { question: "Nævn tre typer kapitalandele, som også er omfattet af ABL udover almindelige aktier.", answer: "Anparter, konvertible obligationer, omsættelige investeringsforeningsbeviser." },
+            { question: "Er aktieretter og tegningsretter omfattet af ABL?", answer: "Ja, både aktieretter og tegningsretter er omfattet af ABL." },
+            { question: "Er det afgørende for ABL’s anvendelse, om aktiebeviser er udstedt?", answer: "Nej, det er ikke afgørende om aktiebeviser er udstedt, jf. LSRM 1968.6." },
+            { question: "Hvornår finder ABL anvendelse på likvidationsprovenu?", answer: "Når udlodningen sker i det kalenderår, hvori selskabet endeligt opløses." },
+            { question: "Hvornår er likvidationsudlodninger ikke omfattet af ABL?", answer: "Når modtagende selskab ejer mindst 10 % af aktiekapitalen og udlodningen er omfattet af SEL § 2, stk. 1, litra c." },
+            { question: "Kan ABL finde anvendelse på kapitalnedsættelse?", answer: "Ja, hvis SKAT giver tilladelse, og selskabet ikke er i likvidation." },
+            { question: "Hvornår gælder ABL ved tilbagesalg af aktier til det udstedende selskab?", answer: "Fx ved medarbejderaktier, der skal tilbagesælges, hvis betingelserne i LL §§ 7 A, 7 H eller 28 er opfyldt, og medarbejderen ikke er hovedaktionær." },
+            { question: "Hvilke typer af optioner er omfattet af ABL?", answer: "Optioner til aktier, der kun kan opfyldes ved levering sammen med aktien, og ikke må afstås eller kombineres med modgående kontrakter (jf. KGL § 30)." },
+            { question: "Nævn én situation, hvor ABL ikke finder anvendelse.", answer: " Ved likvidationsprovenu i indkomstår før det år, hvor selskabet endeligt opløses." },
+            { question: "Gælder ABL for kontante beløb ved skattefri aktieombytning?", answer: " Nej, ikke hvis det er mindrebeløb (spidser), som ikke overstiger kursværdien af tildelte aktier." },
+            { question: "Omfatter ABL investeringsforeningsbeviser?", answer: " Ja, hvis de er omsættelige." },
+            { question: "Kan SKAT tillade anvendelse af ABL i særlige tilfælde?", answer: " Ja, SKAT kan give tilladelse i visse tilfælde, fx ved særlig udlodning eller tilbagesalg." },
+            { question: "Hvad gælder for aktier, der afstås til det selskab, der har udstedt dem?", answer: " ABL finder anvendelse, fx ved børsnoterede aktier, jf. ABL § 19 og undtagelser i stk. 3." }
+      ],
+
+      3: [
+            { question: "Hvad indebærer realisationsprincippet ifølge aktieavancebeskatningsloven?", answer: "Realisationsprincippet indebærer, at beskatning sker i det indkomstår, hvor gevinsten realiseres. Det støtter sig til afståelsesbegrebet, som både dækker salg og andre dispositioner, der sidestilles med salg." },
+            { question: "Hvordan opgøres gevinst og tab efter realisationsprincippet?", answer: "Gevinst og tab opgøres som forskellen mellem afståelsessummen og anskaffelsessummen." },
+            { question: "Hvordan opgøres gevinst og tab efter lagerprincippet?", answer: "Gevinst og tab opgøres som forskellen mellem aktiernes værdi ved indkomstårets slutning og begyndelse. Ved køb i løbet af året bruges anskaffelsessummen i stedet for startværdien, og ved salg bruges afståelsessummen i stedet for slutværdien." },
+            { question: "Hvordan fastsættes primoværdien ved skift fra realisations- til lagerprincippet?", answer: "Ved principskift anvendes aktiernes anskaffelsessum som primoværdi i det første år, hvor lagerprincippet anvendes." },
+            { question: "Hvad betyder FIFO-princippet i aktieavancebeskatningen?", answer: "FIFO står for 'First In First Out' og betyder, at det antages, at de først købte aktier også er dem, der sælges først." },
+            { question: "Hvornår anvendes FIFO-princippet?", answer: "Det anvendes, når der sælges aktier i samme selskab med samme rettigheder. Det har praktisk betydning for personer med overgangsaktier og for selskaber med aktier ejet både under og over 3 år." },
+            { question: "Hvordan opgøres gevinst og tab efter aktie-for-aktie-metoden?", answer: "Ved at sammenligne den faktiske afståelsessum og den faktiske anskaffelsessum for de specifikke aktier, der afstås." },
+            { question: "Hvornår anvendes aktie-for-aktie-metoden?", answer: "Den anvendes for fysiske personers afståelse af børsnoterede aktier under beløbsgrænsen pr. 31/12 2005 og afståelse af aktie- og tegningsretter, jf. ABL § 25." },
+            { question: "Hvad er hovedreglen for opgørelse af anskaffelsessum efter ABL?", answer: "Hovedreglen er, at anskaffelsessummen opgøres efter gennemsnitsmetoden." },
+            { question: "Hvornår gælder gennemsnitsmetoden ikke?", answer: "Fx for aktier i skattefrie beholdninger pr. 31/12 2005, aktie- og tegningsretter til både børsnoterede og visse unoterede aktier, samt aktier opgjort efter lagerprincippet." },
+            { question: "Hvordan beregnes anskaffelsessummen ved gennemsnitsmetoden?", answer: "Den beregnes som en forholdsmæssig andel af den samlede anskaffelsessum, fordelt efter aktiernes nominelle værdi – eller ligeligt ved no par value-aktier." },
+            { question: "Hvad fastslog Skatterådet i SKM.2012.355.SR om ægtefællesuccession?", answer: "At overdragelse til ægtefælle ikke påvirker spørgers anskaffelsessum eller avance ved senere salg af andre aktier i samme selskab." },
+            { question: "Hvad konkluderede retten i SKM.2021.100.SR om fremrykket tab?", answer: "Retten anerkendte tabet, da dispositionen var reel og blot medførte en udskydelse – ikke en reduktion – af den samlede skattebetaling." },
+            { question: "Hvad gik ændringen i L 4 2019-2020 ud på?", answer: "Hovedaktionærer skal ved gennemsnitsopgørelse anvende handelsværdi i stedet for pålydende værdi ved fordeling af anskaffelsessum ved delsalg, når der er flere aktieklasser." },
+            { question: "Hvorfor blev denne ændring indført?", answer: "For at forhindre kunstig udnyttelse af gennemsnitsmetoden, hvor hovedaktionærer kunne manipulere fordelingen af anskaffelsessummen og derved minimere skattebetaling." }
+      ],
+
+      4: [
+            { question: "Hvornår kan en vedtægtsændring sidestilles med en afståelse?", answer: "Når ændringen medfører så væsentlige ændringer i aktiernes rettigheder, at der ikke længere er identitet mellem aktierne før og efter ændringen. Det beror på en konkret vurdering af sagens omstændigheder." },
+            { question: "Hvilke forhold lægges der vægt på ved vurderingen af, om en vedtægtsændring udgør en afståelse?", answer: "Der ses på ændringernes indhold, graden af forskydning i økonomiske rettigheder, sammensætningen af aktionærkredsen (få med interessefællesskab vs. bred investorgruppe) samt motiverne og de skattemæssige/økonomiske virkninger." },
+            { question: "Hvad kendetegner vedtægtsændringer, der typisk sidestilles med afståelse?", answer: "Ændringer, der medfører forskydning i økonomiske rettigheder – fx ændringer i udbytteret eller en fastfrysning af kursværdi – anses normalt for afståelse." },
+            { question: "Kan vedtægtsændringer vedrørende én aktieklasse påvirke andre aktieklasser?", answer: "Ja, hvis ændringen forskyder økonomiske rettigheder på en måde, der også påvirker de øvrige aktier, kan disse også anses for afstået, selvom de formelt ikke ændres." },
+            { question: "Fører ændringer i stemmeret normalt til afståelsesbeskatning?", answer: "Nej, ændringer der alene angår forvaltningsmæssige rettigheder som stemmeret, fører kun undtagelsesvis til, at der skattemæssigt anses for at foreligge afståelse." },
+            { question: "Hvornår sidestilles en ombytning af aktier med afståelse?", answer: "Når aktier i samme selskab, men med forskellige rettigheder, ombyttes – også selv om de har samme kursværdi." },
+            { question: "Hvornår sidestilles en ombytning ikke med afståelse?", answer: "Når de nye aktier er reelt identiske med de gamle, fx ved ændring af selskabets navn eller aktiernes stykstørrelse." },
+            { question: "Hvad omfatter begrebet 'bortfald'?", answer: "Det omfatter fx situationer, hvor en tegningsret ikke udnyttes og dermed bortfalder ved udløb." },
+            { question: "Hvad omfatter begrebet 'andre former for afhændelse'?", answer: "Det omfatter fx tvangsindløsning efter selskabsloven, hvor en hovedaktionær med over 90 % af stemmerne indløser minoritetsaktionærer." },
+            { question: "Hvornår anses et salg med tilbagekøb for at være en afståelse?", answer: "Hvis der foreligger en reel kursrisiko mellem salg og tilbagekøb – fx hvis salget sker via bank eller børsmægler." },
+            { question: "Har det betydning, om salget og tilbagekøbet sker mellem interesseforbundne parter?", answer: "Nej, så længe der er reel kursrisiko i mellemtiden, er det uden betydning, at parterne er interesseforbundne." },
+            { question: "Hvad sker der, hvis der ikke er reel kursrisiko ved salg og tilbagekøb?", answer: "Så betragtes salget som om det ikke har fundet sted i henhold til aktieavancebeskatningsloven (ABL)." },
+            { question: "Hvornår sidestilles selskabets salg af egne aktier til aktionærerne ikke med afståelse?", answer: "Når salget sker i samme forhold som aktionærernes ejerandele – da behandles det som overkurs ved aktietegning og er skattefrit." },
+            { question: "Hvornår sidestilles selskabets salg af egne aktier med afståelse?", answer: "Hvis salget sker i et andet forhold end aktionærernes ejerandele – så er det omfattet af ABL som almindelig afståelse." },
+            { question: "Udløser overdragelse af aktier mellem ægtefæller aktieavancebeskatning?", answer: "Nej, overdragelse mellem samlevende ægtefæller – også ved separation eller skilsmisse – udløser ikke beskatning eller fradrag." },
+            { question: "Hvad sker der skattemæssigt, når en ægtefælle overtager den andens aktier?", answer: "Den modtagende ægtefælle indtræder i den overdragende ægtefælles skattemæssige stilling med hensyn til anskaffelsestidspunkt, anskaffelsessum og evt. hovedaktionærstatus." },
+            { question: "Hvilke skattemæssige konsekvenser har konvertering af konvertible obligationer til aktier?", answer: "Ingen – konvertering anses ikke for en afståelse og udløser derfor ikke beskatning." },
+
+      ],
+
+      5: [
+            { question: "Hvornår anses aktier som anskaffet ifølge hovedreglen?", answer: "Når der foreligger en endelig og bindende aftale, dvs. når der er erhvervet ret til aktierne." },
+            { question: "Hvilken dato anvendes som anskaffelsestidspunkt for børsnoterede aktier?", answer: "Børsnotaens dato (handelsdatoen)." },
+            { question: "Hvornår anses aktier tegnet ved kapitalforhøjelse for anskaffet?", answer: "På tidspunktet for tegningen." },
+            { question: "Har en vedtaget, men ikke registreret kapitaludvidelse skattemæssige konsekvenser?", answer: "Nej, den anses ikke som en anskaffelse og giver derfor ikke ret til tabsfradrag." },
+            { question: "Hvornår anses aktier for anskaffet ved stiftelse af et selskab?", answer: "På tidspunktet for stiftelsen, eller ved stiftelse med tilbagevirkende kraft, på tidspunktet for underskrift af stiftelsesoverenskomsten." },
+            { question: "Hvornår anses aktier givet som gave eller arveforskud for anskaffet?", answer: "På det tidspunkt, hvor modtageren er underrettet om gaven eller arveforskuddet." },
+            { question: "Hvornår anses aktier erhvervet ved arv for anskaffet?", answer: "På udlodningstidspunktet, medmindre de modtages ved succession, hvor arving indtræder i arveladers skattemæssige stilling." },
+            { question: "Hvornår anses aktier for afstået ved tvangsindløsning?", answer: "Hvis overdraget inden fristens udløb: På den faktiske overdragelsesdato. Hvis ikke overdraget: På den dato for fristens udløb, der er anført i Statstidende." },
+            { question: "Hvornår anses aktier for afstået ved skattepligtig fusion?", answer: "På datoen for den sidste af de to generalforsamlingers endelige vedtagelse." },
+            { question: "Hvornår anses aktier for afstået ved salg?", answer: "På aftaletidspunktet." },
+            { question: "Hvornår anses aktier for afstået ved likvidationsprovenu?", answer: "Når selskabet er endeligt opløst og afmeldt i Erhvervs- og Selskabsstyrelsen." },
+            { question: "Hvad gælder for solvente likvidationer vedrørende afståelsestidspunktet?", answer: "Det er udlodningstidspunktet i det indkomstår, hvor selskabet opløses." },
+            { question: "Hvornår anses aktier for afstået ved indskud på ratepension?", answer: "På tidspunktet for indskuddet." },
+            { question: "Hvornår anses aktier for afstået ved konkurs?", answer: "På tidspunktet for selskabets endelige opløsning." },
+            { question: "Hvornår anses aktier for afstået ved overdragelse til ægtefælle i udlandet?", answer: "På tidspunktet for overdragelsen." }
+      ],
+
+      6: [
+            { question: "Hvornår anses aktier som anskaffet ifølge hovedreglen?", answer: "Når der foreligger en endelig og bindende aftale, dvs. når der er erhvervet ret til aktierne." },
+            { question: "Hvilken dato anvendes som anskaffelsestidspunkt for børsnoterede aktier?", answer: "Børsnotaens dato (handelsdatoen)." },
+            { question: "Hvornår anses aktier tegnet ved kapitalforhøjelse for anskaffet?", answer: "På tidspunktet for tegningen." },
+            { question: "Har en vedtaget, men ikke registreret kapitaludvidelse skattemæssige konsekvenser?", answer: "Nej, den anses ikke som en anskaffelse og giver derfor ikke ret til tabsfradrag." },
+            { question: "Hvornår anses aktier for anskaffet ved stiftelse af et selskab?", answer: "På tidspunktet for stiftelsen, eller ved stiftelse med tilbagevirkende kraft, på tidspunktet for underskrift af stiftelsesoverenskomsten." },
+            { question: "Hvornår anses aktier givet som gave eller arveforskud for anskaffet?", answer: "På det tidspunkt, hvor modtageren er underrettet om gaven eller arveforskuddet." },
+            { question: "Hvornår anses aktier erhvervet ved arv for anskaffet?", answer: "På udlodningstidspunktet, medmindre de modtages ved succession, hvor arving indtræder i arveladers skattemæssige stilling." },
+            { question: "Hvornår anses aktier for afstået ved tvangsindløsning?", answer: "Svar:" },
+            { question: "Hvornår anses aktier for afstået ved skattepligtig fusion?", answer: "På datoen for den sidste af de to generalforsamlingers endelige vedtagelse." },
+            { question: "Hvornår anses aktier for afstået ved salg?", answer: "På aftaletidspunktet." },
+            { question: "Hvornår anses aktier for afstået ved likvidationsprovenu?", answer: "Når selskabet er endeligt opløst og afmeldt i Erhvervs- og Selskabsstyrelsen." },
+            { question: "Hvad gælder for solvente likvidationer vedrørende afståelsestidspunktet?", answer: "Det er udlodningstidspunktet i det indkomstår, hvor selskabet opløses." },
+            { question: "Hvornår anses aktier for afstået ved indskud på ratepension?", answer: "På tidspunktet for indskuddet." },
+            { question: "Hvornår anses aktier for afstået ved konkurs?", answer: "På tidspunktet for selskabets endelige opløsning." },
+            { question: "Hvornår anses aktier for afstået ved overdragelse til ægtefælle i udlandet?", answer: "På tidspunktet for overdragelsen." },
+            { question: "Hvornår anses vedtægtsændringer for afståelsestidspunkt?", answer: "På det tidspunkt, hvor ændringerne træder i kraft (typisk ved vedtagelse)." },
+      ],
+
+      7: [
+            { question: "Hvornår beskattes fortjeneste ved afståelse af aktier som aktieindkomst?", answer: "Fortjeneste ved afståelse af aktier beskattes som aktieindkomst ifølge ABL § 12 og PSL § 4a." },
+            { question: "Hvem beskattes af aktieafståelser i et ægteskab?", answer: "Hver ægtefælle beskattes af sine egne aktieafståelser. Det er den ægtefælle, der har rådighed over aktierne, der beskattes." },
+            { question: "Udløser overdragelse mellem ægtefæller beskatning?", answer: "Nej, overdragelse mellem samlevende ægtefæller – også i forbindelse med separation eller skilsmisse – udløser hverken beskatning eller fradrag for tab, jf. KSL § 26 B." },
+            { question: "Kan tab på unoterede aktier fradrages?", answer: "Ja, tab på unoterede aktier kan fradrages i aktieindkomsten, jf. ABL § 13, stk. 1. Hvis aktieindkomsten bliver negativ, modregnes skatteværdien i slutskatten." },
+            { question: "Hvad sker der, hvis den negative aktieindkomst ikke kan modregnes i egen slutskat?", answer: "Den negative skat overføres til ægtefællens slutskat, hvis ægtefællerne er samlevende ved årets udgang. Hvis det heller ikke kan rummes her, fremføres den negative skat til kommende år." },
+            { question: "Hvordan behandles aktier, der tidligere har været børsnoterede?", answer: "Aktier, som i ejertiden har været børsnoterede, behandles som børsnoterede aktier ved opgørelse af tab, jf. ABL § 13, stk. 2." },
+            { question: "Hvordan behandles tab på noterede aktier?", answer: "Tab på noterede aktier kan modregnes i udbytter og gevinster på noterede aktier, jf. ABL § 13 A, stk. 1. Overskydende tab overføres til samlevende ægtefælle og herefter fremføres til kommende år." },
+            { question: "Hvilke betingelser gælder for tabsfradrag på noterede aktier?", answer: "Tab kan kun fradrages, hvis der er indsendt oplysninger til SKAT om aktiernes identitet, antal, anskaffelsestidspunkt og anskaffelsessum, jf. ABL § 14." },
+            { question: "Hvad skete der i SKM 2017.610 LSR?", answer: "Landsskatteretten afviste fradrag for tab, fordi der ikke var rettidigt meddelt SKAT oplysninger om de noterede aktier i udenlandsk depot." },
+            { question: "Kan skatteværdien af negativ aktieindkomst udbetales kontant?", answer: "Nej, skatteværdien kan kun modregnes og kan aldrig udbetales." },
+      ],
+
+      8: [
+            { question: "Hvornår er gevinst og tab på børsnoterede aktier skattefri ifølge ABL § 44?", answer: "Hvis beholdningen af børsnoterede aktier pr. 31. december 2005 ikke oversteg 136.600 kr. (273.100 kr. for ægtepar), og aktierne afstås efter mindst 3 års ejertid, er gevinster og tab skattefrie." },
+            { question: "Er det et krav, at aktierne allerede den 31. december 2005 havde været ejet i mindst 3 år?", answer: "Nej, det er uden betydning – kravet er blot, at aktierne først afstås efter 3 års ejertid." },
+            { question: "Gælder skattefriheden også fondsaktier tildelt efter 31. december 2005?", answer: "Ja, hvis fondsaktierne er tildelt på baggrund af aktier, der indgår i den skattefrie beholdning." },
+            { question: "Hvad sker der, hvis aktierne sælges inden 3 års ejertid?", answer: "Tab kan bruges til modregning i gevinster og udbytter fra børsnoterede aktier." },
+            { question: "Gælder skattefriheden stadig, hvis aktierne er blevet afnoteret ved salg?", answer: "Nej, børsnoterede aktier der er afnoteret på salgstidspunktet er ikke længere omfattet af skattefriheden." },
+            { question: "Hvilke aktier kan få tildelt en indgangsværdi pr. 19. maj 1993?", answer: "Aktier ejet før 19. maj 1993, der ikke er hovedaktionæraktier og har været ejet i mindst 3 år, kan anvende handelsværdien pr. 19. maj 1993 som indgangsværdi." },
+            { question: "Kan der fratrækkes mere tab end forskellen mellem afståelsessum og værdien pr. 19. maj 1993?", answer: "Nej, tabet kan maksimalt svare til forskellen mellem afståelsessummen og handelsværdien pr. 19. maj 1993." },
+            { question: "Kan man vælge 19. maj 1993-værdien for enkelte aktier i et selskab?", answer: "Nej, valget skal træffes samlet for alle aktier i det pågældende selskab." },
+            { question: "Kan købsomkostninger tillægges 19. maj 1993-værdien?", answer: "Nej, det er ikke muligt." },
+            { question: "Hvad er en syntetisk indgangsværdi?", answer: "Det er en fiktiv anskaffelsessum, som anvendes i stedet for den faktiske, hvis visse betingelser er opfyldt." },
+            { question: "Hvilke aktier kan få syntetisk indgangsværdi?", answer: "Kun børsnoterede aktier, der var i skattepligtig beholdning pr. 31. december 2005, og som ikke er blevet afnoteret. Unoterede aktier og aktier i skattefrie beholdninger kan ikke få syntetisk indgangsværdi." },
+            { question: "Hvornår skal den syntetiske indgangsværdi måles?", answer: "På følgende måletidspunkter: Lige efter køb, Lige før salg og Ved udgangen af indkomståret" },
+            { question: "Er den 19. maj 1993 et måletidspunkt for syntetisk indgangsværdi?", answer: "Nej, det betragtes ikke som et reelt måletidspunkt." },
+            { question: "Kan erhvervelsesomkostninger tillægges den syntetiske indgangsværdi?", answer: "Nej." },
+            { question: "Hvordan behandles syntetisk indgangsværdi efter 1. januar 2006?", answer: "Efter denne dato er det valgfrit at anvende den syntetiske indgangsværdi, medmindre tabsbegrænsningsreglen gælder." },
+            { question: "Hvordan påvirker kursstigninger i løbet af året adgangen til syntetisk indgangsværdi?", answer: "De har kun betydning, hvis beholdningen overstiger beløbsgrænsen på et af de tre nævnte måletidspunkter." },
+            { question: "Er det den enkelte skattepligtiges beholdning, der vurderes, eller også ægtefællens?", answer: "Det er den samlede beholdning, der vurderes – ægtefællers beholdning tælles sammen." },
+            { question: "Hvad var beløbsgrænsen i 2005 for skattefri aktiebeholdning?", answer: "136.600 kr. for enlige og 273.100 kr. for ægtefæller." },
+      ],
+
+      9: [
+            { question: "Hvad er formålet med sondringen mellem forskellige aktiekategorier i selskabers aktiebeskatning?", answer: "Sondringen sikrer korrekt beskatning efter aktieavancebeskatningslovens regler. Kategorierne er prioriteret og afgør, hvordan gevinst og tab behandles skattemæssigt." },
+            { question: "Hvilke aktiekategorier skal selskaber sondre mellem, og i hvilken rækkefølge?", answer: "1. Egne aktier, 2. Næringsaktier, 3. Datterselskabs- og koncernselskabsaktier samt skattefrie porteføljeaktier, 4. Skattepligtige porteføljeaktier" },
+            { question: "Hvordan beskattes gevinst og tab på egne aktier?", answer: "De er ikke skattepligtige, jf. ABL § 10 – heller ikke ved ejerandele over 10 % eller hvis de indgår i en næringsbeholdning." },
+            { question: "Hvad skete der med egne næringsaktier ved udgangen af 2009?", answer: "De blev anset for afstået, og gevinst/tab skulle medregnes ved indkomstopgørelsen for 2009, da de overgik til skattefrihed." },
+            { question: "Hvordan beskattes næringsaktier?", answer: "Gevinst og tab er skattepligtige, jf. ABL § 17, men tabsfradrag kan begrænses ved modtagelse af skattefrit udbytte." },
+            { question: "Hvilket princip anvendes fra 2010 for næringsaktier?", answer: "Lagerprincippet skal anvendes, jf. ABL § 23, stk. 5." },
+            { question: "Hvilke fem betingelser skal være opfyldt for, at aktionærer kan anses for at eje datterselskabsaktier direkte?", answer: "1. Mellemholdingselskabets primære funktion er aktiebesiddelse, 2. Ingen reel økonomisk virksomhed, 3. Ikke hele aktiekapitalen ejes, eller andre særlige ejerforhold, 4. Mellemholdingselskabets aktier er ikke børsnoterede, 5. Over 50 % ejes af selskaber, som ikke kunne modtage udbyttet skattefrit" },
+            { question: "Hvad er konsekvensen af, at værnsreglen i ABL § 4 A, stk. 3 finder anvendelse?", answer: "Selskabsaktionæren anses for direkte ejer og skal betale en udbytteskat svarende til deres andel – uden skattemæssige konsekvenser." },
+            { question: "Hvad kræves for at opfylde kravet om reel økonomisk virksomhed?", answer: "Selskabet skal have fysiske lokaler, personale og udstyr, og personalet skal aktivt forvalte aktiebesiddelsen (fx via bestyrelsesarbejde)." },
+            { question: "Hvad kendetegner et postkasseselskab?", answer: "Det har ingen egen aktivitet, fysisk tilstedeværelse eller ansatte – og har typisk outsourcet administrationen." },
+            { question: "Hvad var konklusionen i SKM2010.394 SR?", answer: "Indskud af en ejendom ændrede ikke, at selskabet ikke udøvede reel økonomisk virksomhed. Værnsreglen fandt anvendelse." },
+            { question: "Hvad vurderede Skatterådet i SKM2010.410 SR vedrørende ulønnede ejere og manglende deltagelse i ledelsen?", answer: "Da selskabet ikke deltog i ledelsen og ingen ansatte havde, ansås det ikke for at udøve reel økonomisk virksomhed." },
+            { question: "Hvad adskilte SKM2010.33 SR fra de øvrige sager?", answer: "Selskabet havde egne lokaler, ansatte og deltog aktivt i datterselskabernes drift – derfor udøvede det reel økonomisk virksomhed." },
+            { question: "Hvilken betydning havde bestyrelsesdeltagelse i SKM2010.263 SR?", answer: "Reel økonomisk virksomhed blev kun anerkendt, hvis selskabet sad i datterselskabets bestyrelse." },
+      ],
+
+      10: [
+            { question: "Hvad er næringsaktier ifølge ABL § 17?", answer: "Næringsaktier er aktier, der er erhvervet som led i den skattepligtiges næringsvej med henblik på videresalg og fortjeneste, jf. ABL § 17. Dette gælder for skattepligtige, som driver næring med handel af aktier." },
+            { question: "Hvordan beskattes fortjeneste og tab på næringsaktier?", answer: "Fortjeneste og tab på næringsaktier medregnes i den skattepligtige indkomst, uanset ejertidens længde.For personer beskattes de som personlig indkomst, jf. PSL § 3, stk. 1 og § 4, stk. 5.For selskaber beskattes det som almindelig skattepligtig indkomst." },
+            { question: "Hvordan opgøres gevinst og tab ved salg af næringsaktier?", answer: "Efter realisationsprincippet: Gevinst eller tab opgøres som forskellen mellem afståelsessummen og den forholdsmæssige anskaffelsessum, jf. ABL § 26.Alternativt kan skatteyderen vælge lagerprincippet (én gang for alle), jf. ABL § 23, stk. 2 – herefter beskattes urealiserede gevinster/løbende værdiændringer." },
+            { question: "Hvad er forskellen mellem realisationsprincippet og lagerprincippet?", answer: "Realisationsprincippet: Beskatning sker ved afståelse (salg).Lagerprincippet: Beskatning sker løbende på baggrund af årets værdiændringer.Lagerprincippet kan vælges permanent – man kan ikke gå tilbage til realisationsprincippet." },
+            { question: "Hvilke aktører er typisk næringsdrivende med aktier?", answer: "Banker, børsmæglere, vekselerere og finansieringsvirksomheder, der handler med aktier som erhverv.Selv da kan aktier være anskaffet som anlægsaktier, hvilket skatteyderen selv skal bevise." },
+            { question: "Hvad er forskellen på handelsnæring og vederlagsnæring?", answer: "Handelsnæring: Køb og salg af aktier som erhverv med fortjeneste for øje.Vederlagsnæring: Aktier modtaget som vederlag – disse falder uden for næringsaktiebegrebet efter 1. januar 2006." },
+            { question: "Hvilken værdi bruges ved overgang fra vederlagsnæring i 2006?", answer: "Handelsværdien pr. 31. december 2005 anvendes som anskaffelsessum ved fremtidig avanceopgørelse, jf. ABL § 46, stk. 6." },
+            { question: "Hvilke kriterier bruges ved vurderingen af, om en person er næringsdrivende?", answer: "Der lægges vægt på: Antal handler, Professionel tilknytning til det finansielle marked, Antal handler, Systematik og regelmæssighedAntal handler, Erhvervsmæssig karakter, Antal handler, Se bl.a. TfS 1993.531 HD og SKM2008.780.H." },
+            { question: "Nævn en dom, hvor der blev statueret næring på grund af den samlede erhvervsmæssige aktivitet.", answer: "I TfS 1996.64 H blev selskabet anset for næringsdrivende med aktier, da dets samlede finansielle virksomhed var professionel og systematisk – fradrag for tab blev derfor anerkendt." },
+            { question: "Nævn en dom, hvor der ikke blev statueret næring trods mange aktiehandler.", answer: "I SKM2008.780.H blev både selskab og eneanpartshaver ikke anset for næringsdrivende, selvom der var flere hundrede handler. Højesteret lagde vægt på den manglende professionelle tilknytning til finansmarkedet." },
+            { question: "Hvad er betydningen af Skatterådets afgørelse i SKM2008.922.SR?", answer: "Skatterådet fastslog, at hverken private investorer eller deres selskaber, der får porteføljen forvaltet af en bank, kan anses for næringsdrivende alene på det grundlag." },
+
+      ],
+
+      11: [
+            { question: "Hvad er en investeringsforening?", answer: "En investeringsforening er en sammenslutning, som har til formål at investere medlemmernes midler i værdipapirer." },
+            { question: "Hvad er forskellen på en kontoførende investeringsforening og en bevisudstedende investeringsforening?", answer: "Svar:" },
+            { question: "Hvordan beskattes medlemmer af kontoførende investeringsforeninger?", answer: "Medlemmer beskattes af deres andel af foreningens afkast, som om de selv havde ejet de underliggende værdipapirer." },
+            { question: "Hvad er et investeringsselskab efter ABL § 19?", answer: "Et investeringsselskab er typisk en akkumulerende investeringsforening, hvor andele kan indløses på forlangende til en kurs, der svarer til den indre værdi." },
+            { question: "Hvad er skattemæssige konsekvenser af ABL § 19 for selskaber og personer?", answer: "For selskaber: Gevinst og tab medregnes til den skattepligtige indkomst (ABL § 19 A). For personer: Gevinst og tab opgøres efter lagerprincippet og beskattes som enten aktieindkomst (ABL § 19 B) eller kapitalindkomst (ABL § 19 C)." },
+            { question: "Hvordan afgøres det, om et investeringsselskab er aktiebaseret eller obligationsbaseret?", answer: "Hvis 50 % eller mere af aktivmassen gennemsnitligt i et kalenderår er placeret i aktier, er det aktiebaseret. Ellers er det obligationsbaseret." },
+            { question: "Hvordan beskattes beviser i aktiebaserede investeringsselskaber?", answer: "Gevinst og tab opgøres efter lagerprincippet." },
+            { question: "Hvornår kan et investeringsselskab få status som aktiebaseret igen efter at have været obligationsbaseret?", answer: "Tidligst for kalenderåret efter det år, hvor selskabet fik obligationsbaseret status – og kun hvis Skatteforvaltningen modtager meddelelse herom senest 1. november." },
+            { question: "Hvordan beskattes beviser i obligationsbaserede investeringsselskaber?", answer: "Gevinst og tab opgøres efter lagerprincippet. Beskattes som kapitalindkomst." },
+            { question: "Hvornår kan en person få fradrag for tab på beviser omfattet af §§ 19 B eller 19 C?", answer: "Kun hvis Skatteforvaltningen senest 1. juli året efter anskaffelsen har modtaget oplysninger om erhvervelsen, herunder identitet, antal, kurs, tidspunkt og sum." },
+            { question: "Hvordan beskattes beviser i minimumsbeskattede aktiebaserede investeringsforeninger?", answer: "Gevinst og tab opgøres efter realisationsprincippet. Gevinst beskattes som aktieindkomst." },
+            { question: "Hvad sker der skattemæssigt ved et statusskifte mellem aktiebaseret og obligationsbaseret investeringsselskab?", answer: "Statusskiftet udløser ikke beskatning i sig selv, men ændrer den skattemæssige behandling for det følgende indkomstår." },
+      ],
+
+      12: [
+            { question: "Hvad er en konvertibel obligation?", answer: "En konvertibel obligation er et gældsbrev udstedt af et selskab, som giver kreditor ret til at konvertere sin fordring til aktier eller få lånet indfriet kontant." },
+            { question: "Hvilken lovgivning regulerer konvertible obligationer selskabsretligt?", answer: "De reguleres efter selskabslovens § 167, på samme måde som kapitalforhøjelser." },
+            { question: "Er konvertible obligationer omfattet af aktieavancebeskatningsloven?", answer: "Ja, som udgangspunkt omfattes de af aktieavancebeskatningsloven (ABL)." },
+            { question: "Hvordan beskattes gevinst på konvertible obligationer?", answer: "Gevinst beskattes som aktieindkomst." },
+            { question: "Hvordan behandles tab på noterede konvertible obligationer?", answer: "Tab er kildeartsbegrænset og kan kun modregnes i gevinster eller udbytter fra andre noterede aktier mv." },
+            { question: "Hvordan behandles tab på unoterede konvertible obligationer?", answer: "Tab kan fratrækkes i aktieindkomsten og giver reelt fuldt fradrag, hvis aktieindkomsten bliver negativ." },
+            { question: "Hvordan beskattes kontant indfrielse inden for obligationens vilkår?", answer: "Indfrielsen betragtes som afståelse og beskattes efter aktieavancebeskatningsloven." },
+            { question: "Hvordan opgøres gevinst/tab ved kontant indfrielse?", answer: "Som forskellen mellem indfrielsessum (salgssum) og anskaffelsessum." },
+            { question: "Hvad sker der, hvis en obligation indfries uden for de aftalte vilkår?", answer: "Indfrielsen behandles som udbytte og hele beløbet beskattes, medmindre der gives dispensation." },
+            { question: "Hvordan behandles konvertible obligationer skattemæssigt ved afdrag under anfordringsvilkår?", answer: "Afdrag behandles som afståelsessum efter ABL, ikke som udbytte." },
+            { question: "Hvordan beskattes konvertering af en konvertibel obligation til aktier?", answer: "Der sker ingen beskatning ved konvertering. Aktierne anses for anskaffet til den oprindelige låneværdi." },
+            { question: "Hvad sker der skattemæssigt, når konverteringsretten udløber uden at være udnyttet?", answer: "Obligationen skifter status til almindelig fordring efter kursgevinstloven, og der sker statusskiftebeskatning til handelsværdi." },
+            { question: "Hvordan skal hovedaktionærer opgøre anskaffelsessum ved indfrielse af konvertible obligationer?", answer: "De skal anvende gennemsnitsmetoden med udgangspunkt i handelsværdien af aktierne." },
+            { question: "Hvad siger TfS 1997, 389 H om kontant indfrielse og værdiansættelse?", answer: "Hvis hovedaktionæren er eneejer og accepterer kontant indfrielse til kurs 100 frem for konvertering, anerkendes det, fordi aktierne stiger tilsvarende i værdi og der ikke sker indkomstforvridning." },
+            { question: "Hvad kræves for at ændre en almindelig fordring til en konvertibel obligation?", answer: "Det kræver beslutning fra generalforsamlingen eller bestyrelsen i selskabet." },
+            { question: "Hvornår beskattes kontant indfrielse som udbytte?", answer: "Hvis den sker uden for de aftalte vilkår, fx før tid eller til højere beløb end aftalt, beskattes hele beløbet som udbytte." },
+      ],
+
+      13: [
+            { question: "Hvilken bestemmelse i aktieavancebeskatningsloven regulerer aktier med boligret?", answer: "Det gør ABL § 15, som svarer til parcelhusreglen i ejendomsavancebeskatningsloven § 8, stk. 4." },
+            { question: "Hvornår er avance/tab ved salg af andelsbeviser skattefri efter ABL § 15?", answer: "Når lejligheden har tjent som bolig for ejeren eller dennes husstand, og grundarealet er under 1.400 m² eller ikke kan udstykkes." },
+            { question: "Nævn de fire kumulative betingelser for at opnå skattefrihed efter SKM2006.570.SKAT.", answer: "1. Andelsbeviset skal give brugsret til en lejlighed ejet af en forening. 2. Foreningen skal være skattepligtig efter selskabsskatteloven, og beviserne skal omfattes af ABL., 3. Brugsretten skal være til en beboelseslejlighed i en ejendom med flere beboelseslejligheder., 4. Det er uden betydning, hvilken tingsretlig status ejendommen har – blot den ejes af foreningen." },
+            { question: "Udløser en likvidation af en andelsboligforening skat hos medlemmerne?", answer: "Nej, så længe salget sker til handelsværdi, og provenuet udloddes korrekt, er det skattefrit (SKM2006.631.SR)." },
+            { question: "Kan der ske skattefri afståelse, hvis lejligheden delvist er anvendt til erhverv?", answer: "Ja, skattefriheden kan stadig gælde for boligdelen, men der skal opgøres genvundne afskrivninger for erhvervsdelen (SKM2009.294.SR)." },
+            { question: "Hvad gælder ved overdragelse af individuelle forbedringer til andelsforeningen?", answer: "Det kan ske uden beskatning for andelshaveren (SKM2009.294.SR)." },
+            { question: "Kan forbedringsudgifter medregnes ved opgørelse af avance ved salg af andelslejlighed?", answer: "Ja, de kan medregnes i anskaffelsessummen ifølge Den juridiske vejledning (C.B.2.1.5.8)." },
+            { question: "Kan sælger fratrække ejendomsmæglerudgifter ved salg af andelslejlighed?", answer: "Ja, mæglerudgifter kan fratrækkes i afståelsessummen efter regler svarende til EBL (C.H.2.1.8.3)." },
+            { question: "Hvordan blev klagerens skattepligtige avance ændret i SKM2019.549.LSR?", answer: "Den blev nedsat, fordi både forbedringsudgifter og mæglerudgifter blev anerkendt som fradragsberettigede." },
+            { question: "Er tingsretlig status (fx ejerlejlighed vs. andelsbolig) afgørende for skattefrihed efter ABL § 15?", answer: "Nej, det afgørende er, at foreningen ejer flere lejligheder og udlejer dem til beboelse." },
+            { question: "Er ABL § 15 anvendelig på alle typer ejerforhold til boligen?", answer: "Nej, den gælder kun for aktier/andelsbeviser med tilknyttet brugsret – ikke almindelig ejerlejlighed." },
+      ],
+
+      14: [
+            { question: "Hvilken type andelsbeviser er omfattet af reglerne om formuebeskatning?", answer: "Andelsbeviser i andelsforeninger eller andelsselskaber omfattet af SEL § 1, stk. 1, nr. 3." },
+            { question: "Er andelsboligbeviser omfattet af disse regler?", answer: "Nej, bestemmelsen angår ikke andelsboligbeviser." },
+            { question: "Hvilke krav stilles der til et andelsbevis for at være omfattet af reglerne?", answer: "Det skal være omsætteligt og give ret til en andel af foreningens formue." },
+            { question: "Hvilke typer foreninger er omfattet af SEL § 1, stk. 1, nr. 3?", answer: "Indkøbsforeninger, produktionsforeninger og salgsforeninger." },
+            { question: "Hvad karakteriserer de foreninger, der er omfattet af SEL § 1, stk. 1, nr. 3?", answer: "De varetager erhvervsmæssige funktioner for medlemmerne, har mindst 10 medlemmer, og højst 25 % af omsætningen må være med ikke-medlemmer." },
+            { question: "Hvordan opgøres gevinst og tab på andelsbeviser?", answer: "Efter de almindelige regler i aktieavancebeskatningsloven (ABL)." },
+            { question: "Hvordan beskattes personer og selskaber af gevinst/tab på andelsbeviser?", answer: "Personer beskattes i kapitalindkomsten, og selskaber i selskabsindkomsten." },
+            { question: "Hvordan behandles udbetalinger til en andelshaver ved udtræden af foreningen?", answer: "Det anses som vederlag for tilbagesalg til det udstedende selskab og beskattes efter LL § 16 B – medmindre der gives dispensation." },
+            { question: "Hvornår beskattes udlodning af likvidationsprovenu fra en andelsforening?", answer: "I det kalenderår, hvor andelsforeningen endeligt opløses." },
+            { question: "10 Hvordan adskiller andelsbeviser omfattet af SEL § 1, stk. 1, nr. 3 sig fra andelsboligbeviser i skatteretlig henseende?", answer: "Andelsbeviser under SEL § 1, stk. 1, nr. 3 beskattes som formueaktiver og er omfattet af ABL og LL § 16 B, mens andelsboligbeviser behandles efter særreglen i ABL § 15 og kan være skattefrie ved salg." }
+      ],
+
+      15: [
+            { question: "Hvad betyder 'succession' i skatteretlig sammenhæng?", answer: "At erhververen indtræder i overdragerens skattemæssige stilling og dermed overtager anskaffelsessum og anskaffelsestidspunkt." },
+            { question: "Nævn fire former for skattefri selskabsomstruktureringer.", answer: "1. Skattefri aktieombytning, 2. Skattefri fusion, 3. Skattefri spaltning, 4. Skattefri tilførsel af aktiver (hvis relevant)" },
+            { question: "Hvilken type omstrukturering kan foretages skattefrit for en personlig drevet virksomhed?", answer: "Skattefri virksomhedsomdannelse." },
+            { question: "Hvilken regel i ABL giver mulighed for overdragelse med succession til familiemedlemmer?", answer: "ABL § 34." },
+            { question: "Hvordan behandles overdragelse med succession til medarbejdere?", answer: "Efter ABL § 35." },
+            { question: "Hvilken bestemmelse tillader overdragelse med succession til tidligere ejere?", answer: "ABL § 34 A." },
+            { question: "Hvilken bestemmelse gælder for overdragelse med succession til erhvervsdrivende fonde?", answer: "ABL § 35 B." },
+            { question: "Hvilke bestemmelser regulerer overdragelse med succession mellem ægtefæller?", answer: "KSL § 26 A og KSL § 26 B." },
+            { question: "Hvad er en væsentlig betingelse for succession ved overdragelse i levende live?", answer: "Der må ikke ske kontant betaling, der overstiger aktiernes skattemæssige værdi – ellers sker der hel eller delvis afståelsesbeskatning." },
+            { question: "Hvornår er succession ved overdragelse til medarbejdere især relevant?", answer: "Ved generationsskifte, hvor en fast medarbejder skal overtage virksomheden." },
+      ],
+
+      16: [
+            { question: "Hvad er en aktieombytning?", answer: "En transaktion, hvor et selskab erhverver aktier i et andet selskab, så det opnår eller udbygger stemmeflertallet, og aktionærerne i det overtagne selskab modtager aktier i det overtagende selskab som vederlag." },
+            { question: "Hvilken bestemmelse giver mulighed for skattefri aktieombytning?", answer: "ABL § 36." },
+            { question: "Hvordan sker den skattemæssige succession ved aktieombytning?", answer: "De nye aktier (vederlagsaktier) anses anskaffet til samme pris og tidspunkt som de gamle (indskudte aktier). Succession sker også i ejertiden, selvom dette nu er uden betydning for ABL." },
+            { question: "Hvad er holdingkravet ved skattefri aktieombytning uden tilladelse?", answer: "Det overtagende selskab må ikke afstå aktierne i det overtagne selskab i 3 år fra ombytningstidspunktet." },
+            { question: "Hvad forstås ved ombytningstidspunktet?", answer: "Datoen, hvor aktieombytningen endeligt vedtages i det erhvervende selskab." },
+            { question: "Hvornår kræves der tilladelse til skattefri aktieombytning?", answer: "Når der ikke er tale om den objektive model – typisk ved ønsket om at undgå holdingkravet eller ved særlige forhold." },
+            { question: "Hvad kræves for en aktieombytning med tilladelse?", answer: "En forretningsmæssig begrundelse" },
+            { question: "Hvad gælder for aktieombytning uden tilladelse?", answer: "Ingen forretningsmæssig begrundelse, Objektivt holdingkrav, Ombytning til handelsværdi, Ingen udbyttebegrænsninger" },
+            { question: "Hvad blev fastslået i SKM2019.371.SR og senere SKM2020.348.SKTST?", answer: "At ved A/B-modeller, hvor f.eks. B-aktier har særlig gevinstmulighed (f.eks. stor forlods udbytteret), skal dette medregnes ved værdiansættelse – en praksisændring med 6 måneders varslingsperiode." },
+            { question: "Hvorfor findes holdingkravet?", answer: "For at forhindre misbrug, hvor personaktionærer omgår avancebeskatning ved at gennemføre en aktieombytning og derefter sælger via holdingselskab skattefrit." },
+            { question: "Er det muligt at søge om tilladelse og samtidig bruge reglerne uden tilladelse?", answer: "Ja, man kan forsøge begge veje parallelt. Får man afslag på tilladelse, kan man stadig anvende reglerne om aktieombytning uden tilladelse." },
+      ],
+
+      17: [
+            { question: "Hvad er en fusion?", answer: "En fusion foreligger, når et selskab overdrager sin formue som helhed til et andet selskab eller sammensmeltes med dette." },
+            { question: "Hvilke typer fusioner findes?", answer: "Vandrette fusioner, Lodrette fusioner (inkl. omvendt lodrette fusioner)" },
+            { question: "Kan fusioner være skattefrie?", answer: "Ja, fusioner kan både være skattepligtige og skattefrie." },
+            { question: "Hvilke krav gælder for skattefrie fusioner?", answer: "Fusionen skal ske til handelsværdien, , Krav til fusionsdato, Ingen krav om tilladelse, Der skal udstedes vederlagsaktier (med undtagelse af lodrette eller omvendt lodrette fusioner), Successionsprincippet finder anvendelse" },
+            { question: "Hvad er en spaltning?", answer: "En transaktion, hvor et selskab overfører en del eller hele sin formue til ét eller flere selskaber og fordeler aktier/anparter og eventuelt kontant udligning til sine selskabsdeltagere i samme forhold som hidtil." },
+            { question: "Hvilke typer spaltninger findes?", answer: "Ophørsspaltninger, , Grenspaltninger" },
+            { question: "Kan spaltninger være skattefrie?", answer: "Ja, både skattepligtige og skattefrie spaltninger er mulige." },
+            { question: "Hvilke krav gælder for spaltning uden tilladelse?", answer: "Skal ske til handelsværdien, Balancetilpasningskrav gælder, Holdingkrav: Selskaber med mindst 10% ejerandel eller skattefri porteføljeaktier må ikke afstå aktier i 3 år efter spaltning" },
+            { question: "Hvad betyder tilførsel af aktiver?", answer: "Et selskab overfører aktiver og passiver, der udgør en virksomhed eller en gren heraf, til et modtagende selskab mod aktier i det modtagende selskab." },
+            { question: "Kan tilførsel af aktiver være skattefri?", answer: "Ja, tilførsel af aktiver kan ske både skattepligtigt og skattefrit." },
+            { question: "Hvilke krav gælder for tilførsel af aktiver uden tilladelse?", answer: "Tilførslen skal ske til handelsværdien, Aktiverne skal udgøre en virksomhed eller en gren heraf, Holdingkrav: Det indskydende selskab må ikke afstå aktier i det modtagende selskab i 3 år efter vedtagelsen" },
+
+      ],
+
+      18: [
+            { question: "Hvad er hovedreglen ved familieoverdragelse med succession efter ABL § 34?", answer: "Gevinsten ved overdragelsen beskattes ikke hos overdrageren, og erhververen træder i overdragerens skattemæssige stilling, også ved senere afståelse." },
+            { question: "Kan succession anvendes, hvis erhververen bor i udlandet?", answer: "Succession gælder kun, hvis aktierne indgår i skattepligtig virksomhed i Danmark, eller hvis Danmark ifølge en dobbeltbeskatningsoverenskomst har beskatningsretten." },
+            { question: "Kan succession anvendes ved overdragelse af tabsgivende aktier?", answer: "Nej, succession kan ikke anvendes ved overdragelse af tabsgivende aktier." },
+            { question: "Hvem skal overdragelsen ske til, for at succession kan anvendes?", answer: "Overdragelsen skal ske til nær familie, f.eks. børn, børnebørn, søskende, stedbarn, adoptivbarn eller samlever efter boafgiftslovens § 22." },
+            { question: "Hvilket minimumskrav er der til ejerandel ved overdragelse med succession?", answer: "Mindst 1 % af aktie- eller anpartskapitalen skal overdrages." },
+            { question: "Hvad er pengetanksreglen i forbindelse med succession?", answer: "Selskabet anses som pengetank, hvis mindst 50 % af omsætning eller aktiver stammer fra passiv kapitalanbringelse (fx fast ejendom, kontanter eller værdipapirer). I sådanne tilfælde kan succession ikke anvendes." },
+            { question: "Kan aktier omfattet af ABL §§ 19 B eller 19 C overdrages med succession?", answer: "Nej, aktier der er omfattet af §§ 19 B eller 19 C kan ikke overdrages med succession." },
+            { question: "Kan andelsbeviser og næringsaktier overdrages med succession?", answer: "Ja, andelsbeviser og næringsaktier kan altid overdrages med succession uanset størrelse og aktivitet." },
+            { question: "Hvilket krav stilles til medarbejderen for at succession kan anvendes ved overdragelse?", answer: "Medarbejderen skal have arbejdet mindst 3 år på fuld tid inden for de sidste 5 år i selskabet eller koncernforbundne selskaber." },
+            { question: "Kan arbejdstimer fra koncernforbundne selskaber lægges sammen ved opgørelse af beskæftigelseskravet?", answer: "Ja, timetælling kan lægges sammen på tværs af koncernforbundne selskaber." },
+            { question: "Gælder succession ved overdragelse fra et dødsbo til medarbejdere?", answer: "Ja, succession gælder også ved erhvervelse fra dødsbo." },
+            { question: "Hvilken betingelse er der omkring koncernforbindelse?", answer: "Der skal være koncernforbindelse både i beskæftigelsesperioden og på overdragelsestidspunktet." },
+            { question: "Hvornår kan aktier overdrages tilbage til tidligere ejere med succession?", answer: "Det kan ske inden for 5 år efter erhvervelse, hvis tidligere ejer har modtaget aktierne med succession." },
+            { question: "Skal der være en særlig begrundelse for tilbageførslen til tidligere ejer?", answer: "Nej, der er ingen krav om begrundelse for tilbageførslen." },
+            { question: "Hvilke betingelser skal fonden opfylde for at kunne modtage aktier med succession?", answer: "Fonden skal have til formål at eje og drive virksomheden, aktierne skal opfylde krav om aktiv virksomhed, fonden skal eje mindst 25 % af kapitalen og mere end 50 % af stemmerettighederne, og mindst 50 % af værdien af fondens øvrige aktiver skal ejes af selskaber, som fonden har bestemmende indflydelse over." },
+            { question: "Hvordan skal udbytte fordeles ved overdragelse til fond?", answer: "Udbytte skal tilgå fonden i samme forhold som dens ejerandel." },
+            { question: "Skal aktierne overdrages med vederlag til fonden?", answer: "Nej, aktierne skal overdrages uden vederlag." },
+            { question: "Hvad sker der med aktiernes værdi ved overdragelse til fonden?", answer: "Aktiernes værdi efter fradrag for stifterskat tilføres fondens grundkapital." },
+            { question: "Kan særlige familiemedlemmer have fortrinsret til uddelinger eller bestyrelsesposter i fonden?", answer: "Nej, ingen særlige familiemedlemmer må have fortrinsret til uddelinger, bestyrelsesposter eller økonomiske ydelser, bortset fra bestyrelseshverv." },
+            { question: "Skal skattemyndighederne informeres ved anvendelse af succession?", answer: "Ja, der skal ske rettidig meddelelse til skattemyndighederne med dokumentation." },
+            { question: "Gælder reglerne også for fonde udenfor Danmark?", answer: "Ja, reglerne gælder også for erhvervsdrivende fonde i Færøerne, Grønland samt EU/EØS, hvis tilsvarende betingelser er opfyldt." },
+            { question: "Kan succession anvendes til skattemæssig udnyttelse af underskud?", answer: "Nej, succession forudsætter reelle generationsskifter og kan ikke bruges til skattemæssig udnyttelse af underskud." },
+      ],
+
+      19: [
+            { question: "Hvad er formålet med fraflytterbeskatning?", answer: "Formålet er at sikre dansk beskatning af gevinster og tab, som er optjent under dansk skattepligt, men som endnu ikke er realiseret ved ophør af skattepligt (fraflytning)." },
+            { question: "Hvem omfatter reglerne om fraflytterbeskatning efter ABL § 38?", answer: "Personer, der ophører med at være fuldt skattepligtige til Danmark, eller som ophører med at være hjemmehørende i Danmark uden samtidig at få fast driftssted i Danmark, hvortil aktier kan henføres." },
+            { question: "Hvornår er der en bagatelgrænse for fraflytterbeskatning?", answer: "Hvis beholdningen af aktier er mindre end 100.000 kr., sker der som hovedregel ingen fraflytterbeskatning. Denne grænse gælder for hver ægtefælle individuelt." },
+            { question: "Hvornår gælder undtagelsen fra bagatelgrænsen?", answer: "Hvis aktierne har negativ anskaffelsessum (fx ved skattefri virksomhedsomdannelse) eller indgår i beholdninger omfattet af aktieløn (LL § 7 P) eller medarbejderinvesteringsselskaber (LL § 7 N)." },
+            { question: "Hvilke krav stilles til skattepligt for at blive omfattet af fraflytterbeskatning?", answer: "Skatteyderen skal have været fuldt skattepligtig til Danmark i mindst 7 år inden for de seneste 10 år, eller have været begrænset skattepligtig af aktiegevinster." },
+            { question: "Hvordan opgøres gevinst og tab ved fraflytning?", answer: "Gevinst og tab opgøres efter de almindelige regler i aktieavancebeskatningsloven. Ophør af skattepligt sidestilles med salg til handelsværdi på fraflytningstidspunktet, hvilket betyder urealiseret avancebeskatning." },
+            { question: "Kan man få henstand med betalingen af fraflytterskatten?", answer: "Ja, som udgangspunkt kan der opnås henstand med betaling af skatten, men der kan være krav om sikkerhedsstillelse, især ved fraflytning til lande uden for EU og Norden." },
+            { question: "Hvad sker der ved tilbageflytning til Danmark med aktier, der tidligere har været fraflytterbeskattet?", answer: "Aktierne får en ny fiktiv anskaffelsessum (indgangsværdi), som bruges ved senere afståelse, og henstandssaldoen bortfalder." },
+            { question: "Hvad er henstandssaldoen, og hvornår forfalder den?", answer: "Henstandssaldoen er den skat, der er udskudt ved henstand, og den forfalder til betaling ved fx salg af aktier, modtagelse af udbytte, optagelse af lån med sikkerhed i aktierne, eller ved personens død." },
+            { question: "Hvad er hovedreglen for opgørelse af henstandssaldoen ved afståelse af aktier med gevinst?", answer: "Henstandssaldoen reduceres med den danske skat fratrukket den udenlandske skat, så kun nettobeløbet betales i Danmark." },
+            { question: "Hvilke regler gælder ved tilflytning til Danmark?", answer: "Aktier anses for anskaffet til handelsværdi på tilflytningstidspunktet, men anskaffelsestidspunktet ændres ikke. Hvis der tidligere er ydet henstand, opgøres en ny indgangsværdi med fradrag for henstandssaldo." },
+            { question: "Gælder fraflytterbeskatning også ved aktier tilknyttet fast driftssted i Danmark?", answer: "Nej, aktier, der henføres til fast driftssted i Danmark, udgår fra fraflytterbeskatningen." },
+      ],
+
+      20: [
+            { question: "Hvad er aktieløn?", answer: "Aktieløn er løn eller vederlag, hvor størrelsen afhænger af aktiernes kursudvikling." },
+            { question: "Hvilke instrumenter kan indgå i aktieløn?", answer: "Optioner, warrants (tegningsretter), medarbejderaktier og fantomaktier." },
+            { question: "Hvilket formål tjener aktieløn typisk?", answer: "At fastholde og tiltrække medarbejdere. At skabe incitament til ekstra indsats., At reducere virksomhedens likviditetsbelastning, især i nyetablerede virksomheder." },
+            { question: "Hvilken særregel gælder for nystartede virksomheder ved aktieløn?", answer: "Medarbejdere kan modtage aktieløn op til 50 % af deres løn uden skat ved tildeling eller udnyttelse." },
+            { question: "Hvilke overvejelser skal virksomheden gøre sig, når de opretter en aktielønsordning?", answer: "Hvem skal tildeles, hvor meget, betingelser for tildeling og udnyttelse, betaling ved tildeling, løbetid, evt. flere trancher, maksimale gevinster, udenlandske ansatte, og afregning ved exit." },
+            { question: "Hvornår beskattes aktieløn i Danmark?", answer: "Som udgangspunkt på det tidspunkt, hvor medarbejderen erhverver endelig ret til aktielønnen. Men reglerne kan fravige, så nogle instrumenter først beskattes ved udnyttelse eller salg." },
+            { question: "Hvad betyder beskatning på retserhvervelsestidspunktet?", answer: "At medarbejderen beskattes, når der er en bindende aftale om tildeling af aktier, optioner eller tegningsretter." },
+            { question: "Hvad er den typiske beskatningstidspunkt for optioner og warrants?", answer: "Ved udnyttelse af optionen eller warranten." },
+            { question: "Hvordan beskattes aktier, der tildeles medarbejderen gratis?", answer: "Medarbejderen beskattes som personlig indkomst af aktiernes markedsværdi på retserhvervelsestidspunktet." },
+            { question: "Hvad er forskellen i beskatning mellem aktier, optioner/warrants og fantomaktier?", answer: "*Aktier beskattes ved retserhvervelse (LL §16)." },
+            { question: "Hvilke fordele har optioner og warrants for medarbejderen?", answer: "Mulighed for stor gevinst (stor upside) med begrænset tab (lille downside)." },
+            { question: "Hvad er en fantomaktie?", answer: "En aftale, hvor afkastet følger aktiekursen, men uden at medarbejderen ejer aktierne. Ofte en bonusordning baseret på aktieudviklingen." },
+            { question: "Hvordan beskattes fantomaktier?", answer: "Medarbejderen beskattes som løn, når beløbet udbetales, senest 6 måneder efter retserhvervelse." },
+            { question: "Hvilke betin'good leaver' og en 'bad leaver' i forbindelse med aktieløn?", answer: "En good leaver er en medarbejder, der forlader virksomheden under gunstige betingelser, mens en bad leaver er en medarbejder, der forlader under mindre gunstige eller negative betingelser, hvilket kan påvirke pris og rettigheder." },
+            { question: "Hvad indebærer Ligningslovens §7P vedrørende aktieløn?", answer: "At medarbejdere kan vælge at blive beskattet først ved salg af aktierne, hvis visse betingelser er opfyldt, f.eks. værdigrænser og uoverdragelighed." },
+            { question: "Hvilken skat gælder ved beskatning efter LL §28 (optioner og warrants)?", answer: "Personlig indkomstskat inkl. AM-bidrag, maksimalt omkring 56 %." },
+            { question: "Har selskabet fradrag for aktieløn under LL §7P?", answer: "Nej, selskabet har ikke fradrag for værdien af aktieløn under LL §7P." },
+            { question: "Hvad er fordelene ved medarbejderaktier?", answer: "Medarbejderen bliver straks aktionær og har dermed direkte ejerskab og incitament." },
+            { question: "Hvilke ulemper kan være forbundet med medarbejderaktier?", answer: "Kompleksitet ved mange aktionærer og usikkerhed ved medarbejderes fratræden." },
+
+      ],
+      21: [
+            { question: "Hvad er udgangspunktet for beskatning af udbytte for personer og selskaber?", answer: "Personer beskattes af aktieindkomst med 27 % og 42 %. Selskaber beskattes med selskabsindkomst på 22 %., Der findes lukkede systemer som pensioner (PAL-skat 15,3 %) og aktiesparekonto (17 %)." },
+            { question: "Hvilke love og bestemmelser regulerer udbyttebeskatningen?", answer: "Statsskatteloven (SL) §§ 4 og 5" },
+            { question: "Hvad siger SL § 4 og SL § 5 om udbytte?", answer: "SL § 4 e) definerer udbytte som alt, hvad selskabet udbetaler til aktionærer som del af indtjening, fx dividende eller likvidationsudlodning." },
+            { question: "Hvad er formålet med LL §§ 16 A og 16 B?", answer: "LL § 16 A er hjemmel til beskatning af udbytte." },
+            { question: "Hvad indeholder PSL §§ 3, 4, 4a og 8a?", answer: "PSL § 3 og § 4 fastlægger opgørelsen af personlig indkomst, hvor kapitalindkomst (herunder aktieudbytte) adskilles fra personlig indkomst." },
+            { question: "Hvilke regler gælder for selskabers beskatning af udbytte ifølge Selskabsskatteloven?", answer: "SEL § 1 fastlægger fuld skattepligt for selskaber." },
+
+            { question: "Hvad omfatter det skattemæssige udbyttebegreb? (C.B.3.1)", answer: "Det skattemæssige udbyttebegreb omfatter alt, hvad selskabet udlodder til aktionærerne, uanset form og kilde. Det gælder blandt andet:" },
+            { question: "Hvornår skal udbytte beskattes? (C.B.3.2)", answer: "Udbytte beskattes efter retserhvervelsesprincippet, dvs. når aktionæren erhverver endelig ret til udbyttet:" },
+            { question: "Hvordan beskattes udbytte hos personer? (C.B.3.3)", answer: "Udbytte beskattes primært som aktieindkomst, som ikke indgår i den almindelige skattepligtige indkomst. Undtagelser er:" },
+            { question: "Hvad forstås ved maskeret udbytte/udlodning? (C.B.3.5)", answer: "Maskeret udbytte opstår, når selskabet indirekte overfører økonomiske fordele til aktionæren uden at det sker som et formelt udbytte, f.eks.:" },
+            { question: "Hvordan vurderes maskeret udbytte ved selskabets udgifter? (C.B.3.5.2)", answer: "Hvis selskabet betaler udgifter, som ikke er driftsomkostninger, og som er til gavn for aktionæren personligt, anses dette som maskeret udbytte. Vigtige spørgsmål er:" },
+            { question: "Hvordan behandles maskeret udbytte ved selskabets manglende indtægter? (C.B.3.5.3)", answer: "Hvis selskabet ikke indtægtsfører indtægter, som tilkommer selskabet, eller giver afkald på indtægter til fordel for aktionæren, anses dette som maskeret udbytte. Det gælder fx:" },
+            { question: "Hvad siger LL § 2 om enkeltstående maskeret udlodning? (C.B.3.5.4)", answer: "LL § 2 fastlægger, at salg af aktiver mellem selskabet og aktionæren til underpris eller overpris kan udgøre maskeret udbytte. Modsat gælder tilskud til selskabet. Værdiansættelse skal ske ud fra handelsværdi, med visse undtagelser, fx lavere overdragelsessum end opførelsesomkostninger." },
+            { question: "Kan du give et eksempel på maskeret udbytte fra praksis?", answer: "I SKM2024.69.HR fandt Højesteret, at hævninger foretaget af en samlever i selskabet, som ikke blev brugt til selskabets udgifter, var at betragte som udlodning til ejeren og dermed beskattet som maskeret udbytte." },
+
+            { question: "Hvad omfatter det skattemæssige udbyttebegreb? (C.B.3.1)", answer: "Det skattemæssige udbytte omfatter alt, hvad selskabet udlodder, uanset form:" },
+            { question: "Hvornår skal udbytte beskattes? (C.B.3.2)", answer: "Udbyttet beskattes efter retserhvervelsesprincippet, altså når den endelige ret til udbyttet erhverves:" },
+            { question: "Hvordan beskattes udbytte hos personer? (C.B.3.3)", answer: "Udbytte indgår som aktieindkomst, der ikke medregnes i den personlige skattepligtige indkomst, med visse undtagelser." },
+            { question: "Hvornår kan der opstå maskeret udbytte? (C.B.3.5.1)", answer: "Maskeret udbytte kan opstå, når: Selskabet afholder udgifter, der ikke vedrører selskabet, og som ikke er fradragsberettigede, Selskabet undlader at oplyse indtægter, Der sker enkeltstående transaktioner til andre end handelsværdien" },
+            { question: "Hvordan opstår maskeret udbytte i forbindelse med selskabets udgifter? (C.B.3.5.2)", answer: "Maskeret udbytte kan være: ,, Udgifter, som ikke er driftsomkostninger, men afholdt i aktionærens personlige interesse, Vurdering: Er udgiften selskabets eller aktionærens interesse?, Eksempler fra praksis: Hævninger, gaver til mission, ombygningsudgifter på ejendom ejet af HOA, erhvervelse af fly, pensionsindbetalinger til HOA, udgifter til motorsportskarriere mv." },
+            { question: "Hvordan opstår maskeret udbytte i forbindelse med selskabets indtægter? (C.B.3.5.3)", answer: "Når selskabet mangler at oplyse eller modtage indtægter, som reelt tilkommer selskabet, men aktionæren får fordel, Rådighed over helårsbolig, sommerbolig, bil og lystbåd kan også være maskeret udbytte, Aktionærlån kan være maskeret udbytte, Praksis viser bl.a. udeholdte indtægter ved bilsalg og mellemregningskonti, som reelt var selskabets omsætning" },
+            { question: "Hvad forstås ved enkeltstående maskeret udlodning? (C.B.3.5.4)", answer: "Transaktioner, hvor selskabet sælger aktiver til aktionæren til underpris eller køber aktiver fra aktionæren til overpris, Tilskud modsat disse transaktioner, Værdiansættelse skal ske efter handelsværdi, men særregler kan gælde (fx lavere overdragelsessum end opførelsesomkostninger), Praksis viser, at lavere værdi end handelsværdi kan føre til udlodningsbeskatning" },
+            { question: "Kan du nævne et væsentligt princip i SKM2016.16.HR?", answer: "Aktionærernes afdrag på gældsbrev blev anset for skattepligtigt udbytte, selvom aktionærerne kunne sælge aktierne skattefrit. Det viste, at afdrag på gældsbrev, der reelt svarer til udlodning, skal beskattes som udbytte." },
+
+            { question: "Hvad er maskeret udbytte, og hvordan indgår det i aktionærens skattemæssige indkomst?", answer: "Maskeret udbytte/udlodning indgår i aktionærens indkomst. Hvis aktionæren ikke er ansat i selskabet, indgår det i aktieindkomsten. Hvis aktionæren er ansat, beskattes alt vederlag for arbejdsindsatsen som personlig indkomst, og resten som aktieindkomst." },
+            { question: "Hvordan beskattes maskeret udbytte, når en anden end aktionæren begunstiges, f.eks. ved fri bolig til aktionærens datter?", answer: "Selskabet har ikke fradrag for udgifterne. Begunstigede (f.eks. datteren) beskattes af markedsværdien af ydelsen (f.eks. huslejen).Aktionæren beskattes af udbytte efter aktieindkomstreglerne." },
+            { question: "Hvad siger SKM2008.211.HR-sagen om maskeret udbytte ved salg af datterselskab til underpris mellem nærtstående?", answer: "Højesteret fastslog, at fordelene, som passeredes den ene aktionær ved underprissalg, skulle medregnes som en formuefordel og beskattes som maskeret udbytte." },
+            { question: "Hvordan beskattes fri bil, ladestander, sommerbolig, lystbåd eller helårsbolig stillet til rådighed for hovedaktionærer?", answer: "Ifølge LL § 16 A, stk. 5 skal værdien af disse goder medregnes i den personlige skattepligtige indkomst, uanset om aktionæren er ansat eller ej. Der anvendes skematiske standardsatser for beregning." },
+            { question: "Hvad er hovedaktionærbegrebet ifølge ABL § 4?", answer: "En hovedaktionær er en person, som på et tidspunkt inden for de seneste fem år: Har ejet 25 % eller mere af aktiekapitalen, eller, Har rådet over mere end 50 % af stemmerne, inkl. aktier ejet af nærtstående familie og kontrollerede selskaber/fonde." },
+            { question: "Hvilke undtagelser gælder for beskatning af fri helårsbolig til hovedaktionærer?", answer: "Ifølge LL § 16, stk. 9, sidste pkt., gælder at hvis hovedaktionæren er lovmæssigt forhindret i at overtage helårsboligen til personlig ejendom (pga. bopælspligt), beskattes det efter markedsleje som aktieindkomst og ikke efter de skematiske regler." },
+            { question: "Hvordan behandles lån ydet af selskab til fysisk person, herunder hovedaktionærer, skattemæssigt (LL § 16 E)?", answer: "Lån fra selskab til fysisk person (aktionær eller nærtstående), som ikke er sædvanlige forretningsmæssige dispositioner eller pengeinstitutlån, behandles skattemæssigt som hævninger uden tilbagebetalingspligt og beskattes som løn eller udbytte på udbetalingstidspunktet. Renteudgifter er ikke fradragsberettigede." },
+            { question: "Kan tilbagebetaling af et aktionærlån ophæve beskatningen af det maskede udbytte?", answer: "Nej. Tilbagebetaling påvirker ikke den skattemæssige beskatning, som sker ved udbetalingstidspunktet. Tilbagebetaling medregnes ikke i selskabets skattepligtige indkomst." },
+            { question: "Hvad er konsekvenserne for selskabet, hvis det stiller frie goder til rådighed for hovedaktionærer?", answer: "Selskabet har ikke fradrag for udgifter forbundet med maskeret udbytte som frie goder. Ved lån og goder kan selskabet heller ikke fratrække renteudgifter eller lignende." },
+
+            { question: "Hvordan håndteres beskatning af maskeret udbytte, hvis det vedrører rådighed over lystbåd?", answer: "Der anvendes skematiske standardsatser efter LL § 16, stk. 6 (2 % pr. uge af anskaffelsessum inkl. moms). Hvis flere hovedaktionærer deler godet, fordeles værdien ligeligt. Der findes undtagelser ved udlejning og for produktion af lystbåde." },
+            { question: "Hvordan beskattes udlodning af likvidationsprovenu i det kalenderår, hvor selskabet endeligt opløses?", answer: "Udlodning af likvidationsprovenu i samme kalenderår, som selskabet endeligt opløses, beskattes efter aktieavancebeskatningsloven (ABL), med mindre særlige undtagelser gør sig gældende." },
+            { question: "Hvornår henregnes en udlodning af likvidationsprovenu til udbytte og ikke til aktieavance?", answer: "Hvis modtageren er et selskab, som ejer mindst 10 % af aktiekapitalen i det likviderede selskab, og udlodningen omfattes af SEL § 2, stk. 1, litra c, eller hvis modtageren ejer mindre end 10 %, men har bestemmende indflydelse, jf. LL § 2, eller, hvis modtageren er fysisk person uden for EU/EØS med bestemmende indflydelse, eller, hvis modtageren er et selskab med skattefri porteføljeaktier, og visse betingelser om aktivers sammensætning er opfyldt." },
+            { question: "Hvad betyder det, at udbyttebeskatningen kan frafaldes eller nedsættes efter direktiv 2011/96/EU eller en dobbeltbeskatningsoverenskomst?", answer: "Hvis det modtagende selskab er hjemmehørende i en EU- eller EØS-stat, hvor udbyttebeskatningen ville være frafaldet eller nedsat efter disse regler, vil udlodningen ikke blive henregnet til udbytte med beskatning." },
+            { question: "Hvordan behandles udlodning af likvidationsprovenu fra et investeringsinstitut med minimumsbeskatning?", answer: "Kun den del af likvidationsudlodningen, der overstiger minimumsindkomsten, anses som afståelsessum og beskattes efter de almindelige regler i ABL. Den del, der ikke overstiger minimumsindkomsten, beskattes som udbytte." },
+            { question: "Hvad gælder ved udlodning af likvidationsprovenu til foreninger og selskaber under overgang fra kooperationsbeskatning?", answer: "De modtagne beløb er skattefrie for modtagerne, jf. SEL § 5 B, stk. 4." },
+            { question: "Kan likvidationsudlodninger, som er foretaget før likvidationsåret, blive beskattet som aktieavance?", answer: "Nej, likvidationsudlodninger forud for det kalenderår, hvor selskabet endeligt opløses, beskattes som udbytte og ikke efter ABL." },
+            { question: "Hvad sker der, hvis et selskab i likvidation har foretaget udlodninger til aktionærerne inden likvidationens indtræden i samme kalenderår?", answer: "Disse udlodninger er ikke omfattet af ABL, men skal beskattes som udbytte." },
+            { question: "Hvordan beskattes udlodning til aktionærer i forbindelse med nedskrivning af selskabskapitalen i selskaber, som ikke er i likvidation?", answer: "Udlodningen skal beskattes som udbytte." },
+            { question: "Kan der gives dispensation til, at udlodning i forbindelse med kapitalnedsættelse beskattes efter ABL?", answer: "Ja, Skattestyrelsen kan tillade, at beløb udloddet i forbindelse med kapitalnedsættelse beskattes efter ABL, hvis kapitalnedskrivningen kun er begrundet i erhvervsmæssige forhold og der er særlige omstændigheder." },
+            { question: "Hvilke forhold vægtes ved vurdering af dispensation ved kapitalnedsættelse?", answer: "Kapitalnedsættelsen sker kort tid efter salg af aktivitet (ca. 1½ år), Udlodningen svarer omtrent til salgsprovenuet, Der fortsat er en væsentlig aktivitet i selskabet eller koncernen." },
+            { question: "Hvordan behandles salg af aktier til det udstedende selskab skattemæssigt?", answer: "Det udstedende selskab kan købe egne aktier, men salget kan udløse skattemæssige konsekvenser for sælgeren, herunder beskatning af gevinst efter aktieavancebeskatningsloven, med særlige regler gældende for visse selskabstyper og ejerskabskonstruktioner." },
+            { question: "Gælder der særlige regler for salg til datterselskaber?", answer: "Ja, der gælder særlige regler for salg af aktier til datterselskaber og koncernselskaber, herunder mulige skattefriheder eller særlige beskatningsregler afhængig af ejerskabsprocent og relationer i koncernen." },
+      ]
+    };
+
+    let currentCategory = null;
+    let currentCardIndex = 0;
+
+    const card = document.getElementById("card");
+    const question = document.getElementById("question");
+    const answer = document.getElementById("answer");
+
+    function selectCategory(number) {
+        if (!flashcardData[number]) {
+            alert("Denne kategori har endnu ingen kort.");
+            return;
+        }
+        currentCategory = number;
+        currentCardIndex = 0;
+
+        // Vis kategorinavn i toppen
+        const categoryTitle = document.getElementById("categoryTitle");
+        categoryTitle.textContent = categoryNames[number] || `Kategori ${number}`;
+
+        document.getElementById("categoryContainer").classList.add("hidden");
+        document.getElementById("flashcardSection").classList.remove("hidden");
+        document.getElementById("chooseCategoryTitle").classList.add("hidden");
+        document.getElementById("counter").classList.remove("hidden");
+        showCard(currentCardIndex);
+    }
+
+
+    function showCard(index) {
+        const cards = flashcardData[currentCategory];
+        question.innerHTML = cards[index].question;
+        answer.innerHTML = cards[index].answer;
+        card.classList.remove("flipped");
+
+        // Opdater counter
+        document.getElementById("counter").textContent = `Spørgsmål ${index + 1} af ${cards.length}`;
+    }   
+
+
+    function flipCard() {
+      card.classList.toggle("flipped");
+    }
+
+    function nextCard() {
+      const cards = flashcardData[currentCategory];
+      currentCardIndex = (currentCardIndex + 1) % cards.length;
+      showCard(currentCardIndex);
+    }
+
+    function prevCard() {
+      const cards = flashcardData[currentCategory];
+      currentCardIndex = (currentCardIndex - 1 + cards.length) % cards.length;
+      showCard(currentCardIndex);
+    }
+
+    function goBack() {
+      document.getElementById("flashcardSection").classList.add("hidden");
+      document.getElementById("categoryContainer").classList.remove("hidden");
+      card.classList.remove("flipped");
+      document.getElementById("categoryTitle").textContent = ""; // ← Tilføj denne linje
+      document.getElementById("chooseCategoryTitle").classList.remove("hidden");
+      document.getElementById("counter").classList.add("hidden");
+    }
+
+    categoryButton.addEventListener("click", function () {
+        // eksisterende kode...
+        document.getElementById("chooseCategoryTitle").classList.add("hidden"); // ← Skjul overskrift
+    });
+
+  </script>
+
+</body>
+</html>
